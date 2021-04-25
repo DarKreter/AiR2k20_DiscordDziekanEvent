@@ -1,8 +1,8 @@
 import discord
+from TOKEN import TOKEN
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
-TOKEN = "ODAzNjU4MjI4NjE3MzE0MzE0.YBA_DA.R6FP4ypmg01sGlfFl-8_S06KeYs"
 
 from functions import *
 from globalVar import *

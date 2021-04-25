@@ -1,2 +1,6 @@
 .vs/
-Discord bot/__pycache__
+*.pyc
+*.sln
+*.bat
+*.pyproj
+Discord bot/TOKEN.py
