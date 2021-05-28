@@ -1,4 +1,6 @@
 import discord
+from datetime import datetime
+from globalVar import *
 
 async def AddRole(role, user, guild):
     temp = discord.utils.get(guild.roles, name=role)
@@ -7,6 +9,24 @@ async def AddRole(role, user, guild):
 async def RemoveRole(role, user, guild):
     temp = discord.utils.get(guild.roles, name=role)
     await user.remove_roles(temp)
+
+async def RemoveAllQuizRoles(guild, user):
+    quizRoles = GenerateAllQuizRolesNames()
+    userRolesNames = [x.name for x in user.roles]
+    for quizRole in quizRoles:
+        if quizRole in userRolesNames:
+            await RemoveRole(quizRole, user,guild)
+                
+
+
+async def IsUserHasBannedRole(user):   
+    userRoleListNames = [x.name for x in user.roles]
+    # Sprawdzanie czy PETENT nie ma zakazanej roli czyli np. zrobił już event
+    for bannedRole in bannedRoles:
+        if bannedRole in userRoleListNames:
+            PrintLog("Jesteś zbanowany w chuj", user)
+            return True
+    return False
 
 
 async def BackupRoles(roleList, guild, user):
@@ -87,3 +107,32 @@ async def ReconstructRoles(roleList, guild, user):
             elif role.name == "Guest?":
                 await RemoveRole("Guest?", user, guild)
                 await AddRole("Guest", user, guild)
+                
+# Generowanie nazw roli typu "nm" dla n - quizStages i m - quizQuestions i zwrócenie tablicy nazw
+# @async
+def GenerateQuizRolesNames():      
+    quizRolesList = []
+    for i in range(1, quizStages+1):
+        for j in range(1, quizAnswers+1):
+            # await guild.create_role(name=(str(i) + str(j)))
+            quizRolesList.append(str(i) + str(j))
+
+    return quizRolesList
+
+# Tworzy liste nazw ról na danym indexie
+def GenerateStageRolesNames(index):
+    quizRolesList = []
+    for j in range(1, quizAnswers+1):
+        # await guild.create_role(name=(str(i) + str(j)))
+        quizRolesList.append(str(index) + str(j))
+
+    return quizRolesList
+
+def GenerateAllQuizRolesNames():
+    return GenerateQuizRolesNames()  + [tresc1, wybieraczRoliRole]
+
+#get time
+def PrintLog(*message):
+    now = datetime.now()
+    currentTime = now.strftime("%d-%m-%y %H:%M:%S")
+    print(currentTime,  message)

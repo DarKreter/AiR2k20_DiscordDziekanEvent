@@ -1,7 +1,3 @@
-class CichyEvent:
-    
-
-
 class SingleQuiz:
     quastion = str()
     answers = []

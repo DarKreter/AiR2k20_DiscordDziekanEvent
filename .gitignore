@@ -3,4 +3,4 @@
 *.sln
 *.bat
 *.pyproj
-Discord bot/TOKEN.py
+*/TOKEN.py
