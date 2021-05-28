@@ -25,30 +25,30 @@ async def on_ready():
 # Generowanie nazw roli typu "nm" dla n - quizStages i m - quizQuestions
 quizRoleNames = GenerateQuizRolesNames()
 
-@client.event
-async def on_message(message): 
-    if message.author.id == client.user.id:
-        return
+# @client.event
+# async def on_message(message): 
+#     if message.author.id == client.user.id:
+#         return
 
-    channel = message.channel
-    # # await channel.send(message.content)
-    # if message.content  == "!removeQuizRoles":
-    #     PrintLog("usuwam role %s..." %message.author.name)
-    #     for quizRole in quizRoleNames:
-    #         await RemoveRole(quizRole, message.author, guild)
+#     channel = message.channel
+#     # # await channel.send(message.content)
+#     # if message.content  == "!removeQuizRoles":
+#     #     PrintLog("usuwam role %s..." %message.author.name)
+#     #     for quizRole in quizRoleNames:
+#     #         await RemoveRole(quizRole, message.author, guild)
         
-    #     return
+#     #     return
 
 
-    PrintLog(message.content)         
-    if channel.id == 847561311918620692:
-        PrintLog("DUPA ")
-        msg = await channel.fetch_message(847561432194351144)
-        if msg:
-            await msg.add_reaction(instrukcjaEmojiAccept) 
-            await msg.add_reaction(instrukcjaEmojiResign) 
-        else:
-            PrintLog("Nie znaleziono!!!!")
+#     # PrintLog(message.content)         
+#     if channel.id == 847561311918620692:
+#         PrintLog("DUPA ")
+#         msg = await channel.fetch_message(847561432194351144)
+#         if msg:
+#             await msg.add_reaction(instrukcjaEmojiAccept) 
+#             await msg.add_reaction(instrukcjaEmojiResign) 
+#         else:
+#             PrintLog("Nie znaleziono!!!!")
 
     
 
@@ -82,8 +82,6 @@ async def on_raw_reaction_add(payload):
         #Odnalezienie wszystkich ról jakie ma użytkownik klikający
         if await IsUserHasBannedRole(user):
                 return;
-            
-        PrintLog("Nie jesteś zbanowany!", user)
         
         await AddRole(wybieraczRoliRole, user, guild)
         
@@ -98,6 +96,7 @@ async def on_raw_reaction_add(payload):
                 return;
 
             await AddRole(tresc1, user, guild)
+            PrintLog("Ktos wlasnie rozpoczal pierwsze pytanie! - %s" %user)
         if emoji.name == instrukcjaEmojiRName:
             await message.remove_reaction(emoji, user)
             if await IsUserHasBannedRole(user):
@@ -105,6 +104,13 @@ async def on_raw_reaction_add(payload):
 
             await AddRole(resign, user, guild)
             await RemoveAllQuizRoles(guild, user)
+            PrintLog("Ktos wlasnie dostal 2/10! - %s" %user.nick)
+
+            mail = "<@!" + str(user.id) + "> zaakceptował swój wynik...\n"
+            mail += "Została Ci przydzielona ranga: **2/10**\n"
+            mail += 100*"-"
+            channelPodsumowanie = discord.utils.find(lambda ch: ch.id == 847562734668087326, guild.channels)
+            await channelPodsumowanie.send(mail)
 
 
 
@@ -130,7 +136,12 @@ async def on_raw_reaction_add(payload):
 #---------------------- Pytanie 5 -------------------------------------
     if channel.id == pytanieChannelID[4] and messageID == pytanieMessageID[4]:
 
+        channelPodsumowanie = discord.utils.find(lambda ch: ch.id == 847562734668087326, guild.channels)
+
         suma = 0
+        marcin = 0
+        mail = ""
+        ranga = ""
         
         roleList = user.roles
         for role in roleList:
@@ -138,17 +149,31 @@ async def on_raw_reaction_add(payload):
                 for j in range(quizAnswers):
                     if role.name[0] == str(i+1) and role.name[1] == str(j+1):
                         suma += przelicznikOdpowiedzi[i][j]
+                        marcin += przelicznikOdpowiedziCichockiego[i][j]
+                        mail = zlozonyMail[i][j] + mail
+        
+        if marcin == 5:
+            await AddRole(finishRoleListWithWeight[5][2], user, guild)
+            ranga = finishRoleListWithWeight[5][2]
+        else:
+            for roleWeight in finishRoleListWithWeight:
+                if roleWeight[0] >= suma and roleWeight[1] < suma:
+                    PrintLog("Rola %s" %user, roleWeight[2])
+                    ranga = roleWeight[2]
+                    await AddRole(roleWeight[2], user, guild)
+                    break
+                
                     
         await RemoveAllQuizRoles(guild, user)
-        PrintLog(suma)
-            
-        # await AddRole("Na pewno nie DZIEKAN 🍻", user, guild)
-        # await RemoveRole("win", user, guild)
-        # await RemoveRole("DZIEKAN IMPOSTOR?", user, guild)
+        PrintLog("Suma odpowiedzi tego dzbana %s to: " %user, suma)
+        
+        mail = "<@!" + str(user.id) + "> Wysyłam...\n```html\n" + mail
+        mail += user.nick + "\n```"
+        mail += "Na podstawie twoich odpowiedzi została Ci przydzielona ranga: **" + ranga + "**\n"
+        mail += 100*"-"
+        await channelPodsumowanie.send(mail)
 
-        # roleList = user.roles           
-        #Zabieranie mu tych ról razem z dodawaniem ról które zostaną zapamiętane                       
-        # await ReconstructRoles(roleList, guild, user)
+        PrintLog(user.nick, mail)
  
 
 
